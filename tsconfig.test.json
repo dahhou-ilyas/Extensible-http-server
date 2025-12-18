@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "verbatimModuleSyntax": false,
+    "moduleResolution": "node",
+    "allowImportingTsExtensions": false,
+    "module": "commonjs",
+    "target": "ES2020"
+  },
+  "include": ["__tests__/**/*", "app/**/*"]
+}
