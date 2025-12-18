@@ -1,6 +1,5 @@
-const headerString = ""
+import { buildHttpResponse,serializeHttpResponse } from "./builder/ResponseBuilder";
 
+const response = buildHttpResponse(200,"")
 
-const headerLines = headerString.split(/\r?\n/);
-
-console.log(!headerLines[0])
+console.log(serializeHttpResponse(response))

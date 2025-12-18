@@ -4,10 +4,9 @@
   "type": "module",
   "scripts": {
     "dev": "bun run app/main.ts",
-    "dev1": "ts-node app/index.ts",
+    "dev1": "tsx app/index.ts",
     "test": "jest",
     "dev3": "ts-node --esm app/main.ts"
-
   },
   "devDependencies": {
     "@types/bun": "latest"
