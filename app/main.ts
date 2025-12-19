@@ -27,7 +27,7 @@ const server = net.createServer((socket : net.Socket) => {
     const parser = new HttpRequestParser(buffer);
 
     const response:HttpResponse = {
-      statusCode: 0,
+      statusCode: 200,
       statusMessage: "",
       headers: {},
       body: ""

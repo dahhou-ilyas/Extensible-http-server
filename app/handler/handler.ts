@@ -26,6 +26,8 @@ export function handlerUserAgent(req: HttpRequest, res: HttpResponse){
 }
 
 export async function fileHandler(req: HttpRequest, res: HttpResponse){
+    console.log("xxxxxxxxxxxx")
+    console.log(req)
     const fileName = req?.params?.filename;
 
     const path = "/tmp/data/codecrafters.io/http-server-tester/"+fileName;
