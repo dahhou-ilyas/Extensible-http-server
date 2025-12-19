@@ -17,6 +17,13 @@ export type HttpResponse = {
     body: string;
 }
 
+export type HttpResponseBuffer = {
+    statusCode : number;
+    statusMessage : string;
+    headers: Record<string, string>;
+    body: Buffer;
+}
+
 export enum METHODE {
   GET = "GET",
   POST = "POST",

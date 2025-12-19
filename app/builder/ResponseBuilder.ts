@@ -1,4 +1,7 @@
-import type { HttpResponse } from "../type/type";
+import { brotliCompressSync, deflateSync, gzipSync } from "node:zlib";
+import type { HttpRequest, HttpResponse, HttpResponseBuffer } from "../type/type";
+import { HttpParsingError, UnsupportedContentEncodingError } from "../exceptions/exceptions";
+
 
 const STATUS_MESSAGES: Record<number, string> = {
   200: "OK",
@@ -10,23 +13,71 @@ const STATUS_MESSAGES: Record<number, string> = {
   405:"Method Not Allowed",
 };
 
-export function buildHttpResponse(resp : HttpResponse): HttpResponse {
+export function buildHttpResponse(resp : HttpResponse,req:HttpRequest): HttpResponseBuffer {
   const statusMessage = STATUS_MESSAGES[resp?.statusCode] || "Unknown";
-  resp.headers["Content-Length"] = Buffer.byteLength(resp?.body).toString();
-  resp.headers["Content-Type"] = resp.headers["Content-Type"] || "text/plain";
 
-  return { statusCode:resp?.statusCode, statusMessage, headers:resp?.headers, body:resp?.body };
+  const acceptEncoding = req.header["accept-encoding"];
+
+  let bufferBody: Buffer = Buffer.from(resp?.body, "utf8");
+
+  let selectedEncoding: string | null = null;
+  if(acceptEncoding){
+    const supportedEncodings = ['gzip', 'deflate', 'br'];
+    const requestedEncodings = acceptEncoding.split(',').map(e => e.trim().toLowerCase());
+
+    for(const encoding of requestedEncodings){
+      if(supportedEncodings.includes(encoding)){
+        selectedEncoding = encoding;
+        break;
+      }
+    }
+  }
+
+  if(selectedEncoding){
+    bufferBody = compress(bufferBody, selectedEncoding);
+    resp.headers["Content-Encoding"] = selectedEncoding;
+  }
+
+  resp.headers["Content-Type"] = resp.headers["Content-Type"] || "text/plain";
+  resp.headers["Content-Length"] = Buffer.byteLength(bufferBody).toString();
+
+  return { statusCode:resp?.statusCode, statusMessage, headers:resp?.headers, body:bufferBody};
 }
 
 
 
 export function serializeHttpResponse(
-  response: HttpResponse,
+  response: HttpResponseBuffer,
   version: string = "HTTP/1.1"
-): string {
+): Buffer {
   const headerLines = Object.entries(response.headers)
     .map(([k, v]) => `${k}: ${v}`)
     .join("\r\n");
 
-  return `${version} ${response.statusCode} ${response.statusMessage}\r\n${headerLines}\r\n\r\n${response.body}`;
+  const statusLine = `${version} ${response.statusCode} ${response.statusMessage}\r\n`;
+  const headers = `${headerLines}\r\n\r\n`;
+
+  const headerBuffer = Buffer.from(statusLine + headers, "utf8");
+
+  return Buffer.concat([headerBuffer, response.body]);
+}
+
+
+function compress(bodyBuffer: Buffer, enc: string): Buffer {
+  if (!enc || enc === "identity") return bodyBuffer;
+
+  try {
+    switch (enc.toLowerCase()) {
+      case "gzip":
+        return gzipSync(bodyBuffer);
+      case "deflate":
+        return deflateSync(bodyBuffer);
+      case "br":
+        return brotliCompressSync(bodyBuffer);
+      default:
+        throw new UnsupportedContentEncodingError(enc);
+    }
+  } catch (e) {
+    throw new HttpParsingError(`Failed to compress body with '${enc}'`);
+  }
 }

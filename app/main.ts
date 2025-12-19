@@ -36,6 +36,7 @@ const server = net.createServer(async (socket : net.Socket) => {
     let request: HttpRequest | null;
 
     try{
+      
       request = parser.parseRequestHttp();
     }catch{
       socket.write(
@@ -55,10 +56,11 @@ const server = net.createServer(async (socket : net.Socket) => {
       return;
     }
 
+    
     await router.handle(request,response);
 
 
-    const serializeHttp = serializeHttpResponse(buildHttpResponse(response))
+    const serializeHttp = serializeHttpResponse(buildHttpResponse(response,request))
 
     socket.write(serializeHttp);
     socket.end();
