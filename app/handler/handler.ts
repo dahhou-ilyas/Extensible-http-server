@@ -1,4 +1,6 @@
 import type { HttpRequest, HttpResponse } from "../type/type";
+import fs from "fs";
+import { readFile } from "fs/promises";
 
 
 export function simpleSuccesForGet(req: HttpRequest, res: HttpResponse){
@@ -21,4 +23,23 @@ export function handlerUserAgent(req: HttpRequest, res: HttpResponse){
         res.body=userAgent;
         res.statusCode=200;
     }
+}
+
+export async function fileHandler(req: HttpRequest, res: HttpResponse){
+    const fileName = req?.params?.filename;
+
+    const path = "/tmp/"+fileName;
+    try{
+        if (fs.existsSync(path)) {
+            const data = await readFile(path, "utf-8");
+            res.statusCode=200
+            res.body=data;
+            res.headers["Content-Type"]="application/octet-stream"
+        } else {
+            res.statusCode=400
+        }
+    }catch{
+        console.error("error while reading file")
+    }
+    
 }
