@@ -28,7 +28,7 @@ export function handlerUserAgent(req: HttpRequest, res: HttpResponse){
 export async function fileHandler(req: HttpRequest, res: HttpResponse){
     const fileName = req?.params?.filename;
 
-    const path = "/tmp/"+fileName;
+    const path = "/tmp/data/codecrafters.io/http-server-tester/"+fileName;
     try{
         if (fs.existsSync(path)) {
             const data = await readFile(path, "utf-8");
