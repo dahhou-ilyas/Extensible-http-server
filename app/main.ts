@@ -4,7 +4,7 @@ import { buildHttpResponse,serializeHttpResponse } from "./builder/ResponseBuild
 import HttpRequestParser from "./parser/ParseRequestHttp"
 import { METHODE, type HttpRequest, type HttpResponse } from "./type/type";
 import { Router } from "./core/router";
-import { handleEcho, simpleSuccesForGet } from "./handler/handler";
+import { handleEcho, handlerUserAgent, simpleSuccesForGet } from "./handler/handler";
 
 
 const router = new Router();
