@@ -96,7 +96,8 @@ export class Router {
                 await mw(req, resp, next);
             }
             else {
-                await finalHandler ? finalHandler(req, resp) : (isMatchingHandler as Handler)(req, resp);
+                const handler = finalHandler || (isMatchingHandler as Handler);
+                await handler(req, resp);
             }
         }
 
