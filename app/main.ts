@@ -52,7 +52,7 @@ const server = net.createServer((socket : net.Socket) => {
     router.handle(request,response);
 
 
-    const serializeHttp = serializeHttpResponse(response)
+    const serializeHttp = serializeHttpResponse(buildHttpResponse(response))
 
     socket.write(serializeHttp);
     socket.end();

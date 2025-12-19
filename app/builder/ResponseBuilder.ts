@@ -10,19 +10,15 @@ const STATUS_MESSAGES: Record<number, string> = {
   405:"Method Not Allowed",
 };
 
+export function buildHttpResponse(resp : HttpResponse): HttpResponse {
+  const statusMessage = STATUS_MESSAGES[resp?.statusCode] || "Unknown";
+  resp.headers["Content-Length"] = Buffer.byteLength(resp?.body).toString();
+  resp.headers["Content-Type"] = resp.headers["Content-Type"] || "text/plain";
 
-
-export function buildHttpResponse(
-  statusCode: number,
-  body: string,
-  headers: Record<string, string> = {}
-): HttpResponse {
-  const statusMessage = STATUS_MESSAGES[statusCode] || "Unknown";
-  headers["Content-Length"] = Buffer.byteLength(body).toString();
-  headers["Content-Type"] = headers["Content-Type"] || "text/plain";
-
-  return { statusCode, statusMessage, headers, body };
+  return { statusCode:resp?.statusCode, statusMessage, headers:resp?.headers, body:resp?.body };
 }
+
+
 
 export function serializeHttpResponse(
   response: HttpResponse,
