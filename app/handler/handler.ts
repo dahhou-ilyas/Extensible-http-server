@@ -26,8 +26,7 @@ export function handlerUserAgent(req: HttpRequest, res: HttpResponse){
 }
 
 export async function fileHandler(req: HttpRequest, res: HttpResponse){
-    console.log("xxxxxxxxxxxx")
-    console.log(req)
+
     const fileName = req?.params?.filename;
 
     const path = "/tmp/data/codecrafters.io/http-server-tester/"+fileName;
@@ -37,8 +36,7 @@ export async function fileHandler(req: HttpRequest, res: HttpResponse){
             res.statusCode=200
             res.body=data;
             res.headers["Content-Type"]="application/octet-stream"
-            console.log("rrrrrrrrrrrrrrrr")
-            console.log(res)
+
         } else {
             res.statusCode=404
             res.headers["Content-Type"]="application/octet-stream"
