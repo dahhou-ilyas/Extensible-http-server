@@ -5,7 +5,8 @@ export type HttpRequest = {
     url : string;
     version : string;
     header : Record<string, string>;
-    Body? : String
+    Body? : String,
+    params? : Record<string,any>
 }
 
 

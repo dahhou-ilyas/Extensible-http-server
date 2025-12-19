@@ -4,12 +4,16 @@ import { buildHttpResponse,serializeHttpResponse } from "./builder/ResponseBuild
 import HttpRequestParser from "./parser/ParseRequestHttp"
 import { METHODE, type HttpRequest, type HttpResponse } from "./type/type";
 import { Router } from "./core/router";
-import { simpleSuccesForGet } from "./handler/handler";
+import { handleEcho, simpleSuccesForGet } from "./handler/handler";
 
 
 const router = new Router();
 
 router.register(METHODE.GET,"/",simpleSuccesForGet)
+
+router.register(METHODE.GET,"/echo/{str}",handleEcho)
+
+// router.register(METHODE.GET,"/echo/{str}",handleEcho)
 
 const server = net.createServer((socket : net.Socket) => {
 

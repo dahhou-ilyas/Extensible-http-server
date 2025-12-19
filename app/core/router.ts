@@ -1,4 +1,5 @@
 
+import { ValidePathException } from "../exceptions/exceptions";
 import type {Middleware, Handler, HttpRequest, HttpResponse} from "../type/type"
 import {METHODE} from "../type/type"
 import { parseMethod } from "../utils/utils";
@@ -18,7 +19,45 @@ export class Router {
     }
 
     public register(methode:METHODE,path:string,func : Handler){
-        this.route[methode][path]=func
+        if (!path || typeof path !== "string") {
+          throw new ValidePathException("Path is required");
+        }
+
+        if (!path.startsWith("/")) path = "/" + path;
+
+        if (path === "/") {
+          this.route[methode]["/"] = func;
+          return;
+        }
+
+        let parts = path.split("/");
+        // remove first part if the path start whith / ==> ["", .... ] always we start with ""
+        if (parts[0] === "") parts = parts.slice(1);
+        //same if the path end with /
+        if (parts[parts.length - 1] === "") parts.pop();
+
+        for (const part of parts) {
+            if (!part) {
+              throw new ValidePathException("Not a valid path: empty segment (double slash)");
+            }
+
+            const isParam = part.startsWith("{") && part.endsWith("}");
+
+            if (isParam){
+                const name = part.slice(1, -1);
+                if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(name)) {
+                  throw new ValidePathException(`Invalid param name: {${name}}`);
+                }
+            }else {
+              if (!/^[A-Za-z0-9._-]+$/.test(part)) {
+                throw new ValidePathException(`Invalid segment: "${part}"`);
+              }
+            }
+        }
+
+        const normalized = "/" + parts.join("/");
+
+        this.route[methode][normalized] = func;
     }
 
 
@@ -39,7 +78,9 @@ export class Router {
 
         const finalHandler = this.route[METhode][url];
 
-        if(!finalHandler){
+        const isMatchingHandler = this.searchForPtterPath(this.route[METhode],url,req)
+
+        if(!finalHandler && isMatchingHandler==null){
             resp.statusCode=404
             resp.body = "Not Found";
             return;
@@ -55,11 +96,46 @@ export class Router {
                 mw(req, resp, next);
             }
             else {
-                finalHandler(req, resp);
+                finalHandler ? finalHandler(req, resp) : (isMatchingHandler as Handler)(req, resp);
             }
         }
 
         next()
     }
+
+
+    searchForPtterPath(paths:Record<string,Handler>,path:string,req:HttpRequest){
+        const keys = Object.keys(paths);
+        for(const key of keys){
+            const pathList = path.split("/");
+            const keyList = key.split("/");
+            
+            if(keyList.length!=pathList.length) continue;
+
+            let matched = true;
+            const tempParams: Record<string, string> = {};
+        
+            for(let i=0;i<keyList.length;i++){
+                if(!keyList[i].startsWith("{") || !keyList[i].endsWith("}")){
+                    if (keyList[i] == pathList[i]) {
+                      continue;
+                    } else {
+                      matched = false;
+                      break;
+                    }
+                }else{
+                  const variable = keyList[i].slice(1, -1);
+                  tempParams[variable] = pathList[i];
+                }
+            }
+
+            if (matched) {
+              req.params = tempParams;
+              return paths[key];
+            }
+        }
+        return null;
+    }
+
 
 }

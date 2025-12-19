@@ -31,3 +31,10 @@ export class HttpParsingError extends Error {
     this.name = "HttpParsingError";
   }
 }
+
+export class ValidePathException extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "validePathException";
+  }
+}
