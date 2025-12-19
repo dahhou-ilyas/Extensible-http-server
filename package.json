@@ -6,7 +6,7 @@
     "dev": "bun run app/main.ts",
     "dev1": "tsx app/index.ts",
     "test": "jest",
-    "dev3": "ts-node --esm app/main.ts"
+    "dev3": "tsx app/main.ts"
   },
   "devDependencies": {
     "@types/bun": "latest"

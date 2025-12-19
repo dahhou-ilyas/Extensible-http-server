@@ -7,6 +7,7 @@ const STATUS_MESSAGES: Record<number, string> = {
   400: "Bad Request",
   404: "Not Found",
   500: "Internal Server Error",
+  405:"Method Not Allowed",
 };
 
 

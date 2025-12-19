@@ -1,6 +1,6 @@
 import {METHODE, type HttpRequest} from "../type/type"
 import { brotliDecompressSync, gunzipSync, inflateSync } from "node:zlib";
-import {isJsonObject} from "../utils/isValidJson"
+import {isJsonObject} from "../utils/utils"
 import { HttpParsingError, IncompleteHttpHeadersError, InvalidJsonBodyError, UnsupportedContentEncodingError } from "../exceptions/exceptions";
 
 export default class HttpRequestParser {

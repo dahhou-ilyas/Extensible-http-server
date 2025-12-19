@@ -1,3 +1,5 @@
+import * as net from "net";
+
 export type HttpRequest = {
     method : string;
     url : string;
@@ -20,3 +22,10 @@ export enum METHODE {
   PUT = "PUT",
   DELETE = "DELETE"
 }
+
+
+export type NextFunction = () => void;
+
+export type Middleware = (req: HttpRequest, res: HttpResponse, next: NextFunction) => void;
+
+export type Handler = (req: HttpRequest, res: HttpResponse) => void;
