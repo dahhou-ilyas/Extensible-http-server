@@ -61,6 +61,7 @@ export async function saveFile(req: HttpRequest, res: HttpResponse){
     try{
         await mkdir(baseDir, { recursive: true });
         await writeFile(filePath, body, "utf8");
+        res.statusCode=201
     }catch{
         console.error("error while reading file")
     }
