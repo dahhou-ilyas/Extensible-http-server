@@ -41,7 +41,6 @@ export class Router {
 
         if(!finalHandler){
             resp.statusCode=404
-            resp.body = "Not Found";
             return;
         }
 
