@@ -17,11 +17,11 @@ router.register(METHODE.GET,"/files/{filename}",fileHandler)
 
 // router.register(METHODE.GET,"/echo/{str}",handleEcho)
 
-const server = net.createServer(async (socket : net.Socket) => {
+const server = net.createServer((socket : net.Socket) => {
 
   let buffer = Buffer.alloc(0); 
   
-  socket.on("data",(chunk:Buffer)=>{
+  socket.on("data",async (chunk:Buffer)=>{
     buffer = Buffer.concat([buffer, chunk]);
 
     const parser = new HttpRequestParser(buffer);
