@@ -12,6 +12,7 @@ const router = new Router();
 router.register(METHODE.GET,"/",simpleSuccesForGet)
 
 router.register(METHODE.GET,"/echo/{str}",handleEcho)
+router.register(METHODE.GET,"/user-agent",handlerUserAgent)
 
 // router.register(METHODE.GET,"/echo/{str}",handleEcho)
 
