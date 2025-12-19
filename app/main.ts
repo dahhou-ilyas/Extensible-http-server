@@ -17,7 +17,7 @@ router.register(METHODE.GET,"/files/{filename}",fileHandler)
 
 // router.register(METHODE.GET,"/echo/{str}",handleEcho)
 
-const server = net.createServer((socket : net.Socket) => {
+const server = net.createServer(async (socket : net.Socket) => {
 
   let buffer = Buffer.alloc(0); 
   
