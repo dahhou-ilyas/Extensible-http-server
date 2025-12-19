@@ -36,7 +36,7 @@ export async function fileHandler(req: HttpRequest, res: HttpResponse){
             res.body=data;
             res.headers["Content-Type"]="application/octet-stream"
         } else {
-            res.statusCode=400
+            res.statusCode=404
         }
     }catch{
         console.error("error while reading file")
