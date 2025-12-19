@@ -64,7 +64,7 @@ export class Router {
     // cette méthode et appelle dnas le socker on préparer le req par parseRequest et la resp on le donné un remplater a fin de le remplire
 
     // et par la suite on prendre cette reponser et le envoyé
-    public handle(req:HttpRequest,resp : HttpResponse){
+    public async handle(req:HttpRequest,resp : HttpResponse){
         
         const {method,url}=req;
 
@@ -90,17 +90,17 @@ export class Router {
 
         //un appelle récursive de next pour chaque middlware on apelle next qui vas passé nous vers autre middlware
 
-        const next = ()=>{
+        const next =async ()=>{
             if(index < this.middlwares.length){
                 const mw = this.middlwares[index++];
-                mw(req, resp, next);
+                await mw(req, resp, next);
             }
             else {
-                finalHandler ? finalHandler(req, resp) : (isMatchingHandler as Handler)(req, resp);
+                await finalHandler ? finalHandler(req, resp) : (isMatchingHandler as Handler)(req, resp);
             }
         }
 
-        next()
+        await next()
     }
 
 
