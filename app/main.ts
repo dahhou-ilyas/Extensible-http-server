@@ -114,7 +114,6 @@ const server = net.createServer(async (socket : net.Socket) => {
     if (connectionHeader && connectionHeader.toLowerCase() === "close") {
       socket.end();
     }
-
     socket.setTimeout(KEEP_ALIVE_TIMEOUT);
 
   });
@@ -155,6 +154,18 @@ function sliceCurrentRequest(buffer:Buffer,request : HttpRequest){
   return buffer.slice(headerEndIndex);
 
 }
+
+// je doit gerer la possibilité que plisuer requet sont arrifé collé 
+
+// xxxxxxxxxxxxxxx
+// GET /a HTTP/1.1
+// Host: localhost
+
+// GET /b HTTP/1.1
+// Host: localhost
+
+// dans cette cas les deux reqeut dont arrivé dans le meme Socket.on(data); donc dans le parse on prendre just la preméire reqeut donc je doit handler cette cas dnas le parser
+
 
 server.listen(4221, "localhost");
 
