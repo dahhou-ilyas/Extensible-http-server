@@ -109,9 +109,13 @@ const server = net.createServer(async (socket : net.Socket) => {
 
     buffer = sliceCurrentRequest(buffer,request);
 
-    if(request.header["connection"].toLocaleLowerCase()=="close"){
-      socket.end()
+    const connectionHeader = request.header["connection"];
+
+    if (connectionHeader && connectionHeader.toLowerCase() === "close") {
+      socket.end();
     }
+
+    socket.setTimeout(KEEP_ALIVE_TIMEOUT);
 
   });
 
