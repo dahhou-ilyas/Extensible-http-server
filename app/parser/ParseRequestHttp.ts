@@ -35,6 +35,9 @@ export default class HttpRequestParser {
 
         const bodyBuffer = this.requestBuffer.slice(headerEndIndex + delimiter.length);
 
+
+        this.verifyBodyCompleteness(header, bodyBuffer, method);
+
         let Body = "";
 
         if (bodyBuffer && (method==METHODE.POST.toString() || method==METHODE.DELETE.toString() || method==METHODE.PUT.toString())){
@@ -43,6 +46,67 @@ export default class HttpRequestParser {
 
         return {method,url,version,header,Body}
 
+    }
+
+
+    private verifyBodyCompleteness(header: Record<string, string>, bodyBuffer: Buffer, method: string): void {
+        // Pas de body pour GET, HEAD, OPTIONS
+        if (method === 'GET' || method === 'HEAD' || method === 'OPTIONS') {
+            return;
+        }
+
+        // Cas 1: Transfer-Encoding: chunked
+        if (header["transfer-encoding"]?.toLowerCase().includes("chunked")) {
+            if (!this.isChunkedBodyComplete(bodyBuffer)) {
+                throw new HttpParsingError("Incomplete chunked body");
+            }
+            return;
+        }
+
+        // Cas 2: Content-Length
+        if (header["content-length"]) {
+            const contentLength = parseInt(header["content-length"], 10);
+            if (bodyBuffer.length < contentLength) {
+                throw new HttpParsingError(`Incomplete body: expected ${contentLength} bytes, got ${bodyBuffer.length}`);
+            }
+        }
+    }
+
+
+    private isChunkedBodyComplete(bodyBuffer: Buffer): boolean {
+        let offset = 0;
+
+        while (offset < bodyBuffer.length) {
+            const crlfIndex = bodyBuffer.indexOf('\r\n', offset);
+            
+            if (crlfIndex === -1) {
+                return false; // Ligne de taille incomplète
+            }
+
+            const sizeStr = bodyBuffer.slice(offset, crlfIndex).toString('utf8').trim();
+            const chunkSize = parseInt(sizeStr.split(';')[0], 16);
+
+            if (isNaN(chunkSize)) {
+                return false;
+            }
+
+            if (chunkSize === 0) {
+                const expectedEnd = crlfIndex + 4;
+                return bodyBuffer.length >= expectedEnd;
+            }
+
+            const dataStart = crlfIndex + 2;
+            const dataEnd = dataStart + chunkSize;
+            const nextChunkStart = dataEnd + 2;
+
+            if (bodyBuffer.length < nextChunkStart) {
+                return false;
+            }
+
+            offset = nextChunkStart;
+        }
+
+        return false;
     }
 
     private parseRequestLine(line : string) : {method:string,url:string,version:string}{
@@ -81,23 +145,22 @@ export default class HttpRequestParser {
 
 
     private parseRequestBody(header : Record<string,string> , bodyBuffer:Buffer){
-        //TODO 
+        // Si Transfer-Encoding: chunked, décoder les chunks d'abord
+        if (header["transfer-encoding"]?.toLowerCase().includes("chunked")) {
+            bodyBuffer = this.parseChunkedBody(bodyBuffer);
+        }
 
         // 1 Décompresser (si Content-Encoding existe) si existe si non le body ne pas compresser 
 
-        const decompresseBodyBuffer = this.decompresseBody(header,bodyBuffer)
+        const decompressedBodyBuffer = this.decompresseBody(header, bodyBuffer);
         
         // 2 Décoder les bytes → texte (si nécessaire) par defailt utf-8
 
         // 3 Parsing (JSON, form, etc.) Content-Type ===> application/json → JSON.parse(text)  application/x-www-form-urlencoded → parse clé/valeur  multipart/form-data → parser boundaries
 
-        const bodyFormater = this.formateBody(decompresseBodyBuffer,header)
-
-
+        const bodyFormater = this.formateBody(decompressedBodyBuffer, header);
+        
         return bodyFormater;
-
-
-
     }
 
     private decompresseBody(header : Record<string,string> , bodyBuffer:Buffer){
@@ -145,6 +208,47 @@ export default class HttpRequestParser {
         }
 
         return text;
+    }
+
+
+    private parseChunkedBody(bodyBuffer: Buffer): Buffer{
+        const chunks: Buffer[] = [];
+
+        let offset = 0;
+
+        while (offset < bodyBuffer.length){
+            const crlfIndex = bodyBuffer.indexOf('\r\n', offset);
+
+            if (crlfIndex === -1) {
+                throw new HttpParsingError('Chunked encoding: chunk size line not terminated');
+            }
+
+            const sizeStr = bodyBuffer.slice(offset, crlfIndex).toString('utf8').trim();
+
+
+            const chunkSize = parseInt(sizeStr, 16);
+
+            if (isNaN(chunkSize)) {
+              throw new HttpParsingError(`Invalid chunk size: ${sizeStr}`);
+            }
+
+            if (chunkSize === 0) {
+              break;
+            }
+
+            const dataStart = crlfIndex + 2;
+            const dataEnd = dataStart + chunkSize;
+
+            if (dataEnd > bodyBuffer.length) {
+              throw new HttpParsingError('Incomplete chunked body');
+            }
+
+            chunks.push(bodyBuffer.slice(dataStart, dataEnd));
+
+            offset = dataEnd + 2;
+        }
+
+        return Buffer.concat(chunks);
     }
 }
 
