@@ -41,6 +41,13 @@ export function buildHttpResponse(resp : HttpResponse,req:HttpRequest): HttpResp
   resp.headers["Content-Type"] = resp.headers["Content-Type"] || "text/plain";
   resp.headers["Content-Length"] = Buffer.byteLength(bufferBody).toString();
 
+
+  const closingConnexion = req.header["connection"];
+
+  if(closingConnexion && closingConnexion.toLocaleLowerCase()=="close"){
+    resp.headers["Connection"]="close";
+  }
+
   return { statusCode:resp?.statusCode, statusMessage, headers:resp?.headers, body:bufferBody};
 }
 
