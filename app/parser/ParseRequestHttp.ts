@@ -33,15 +33,16 @@ export default class HttpRequestParser {
         const header = this.parseRequestHeader(headerLines);
 
 
-        const bodyBuffer = this.requestBuffer.slice(headerEndIndex + delimiter.length);
+        const remainingBuffer = this.requestBuffer.subarray(headerEndIndex + delimiter.length);
 
 
-        this.verifyBodyCompleteness(header, bodyBuffer, method);
+        this.verifyBodyCompleteness(header, remainingBuffer, method);
 
         let Body = "";
 
-        if (bodyBuffer && (method==METHODE.POST.toString() || method==METHODE.DELETE.toString() || method==METHODE.PUT.toString())){
-            Body = this.parseRequestBody(header,bodyBuffer)
+        if (method==METHODE.POST.toString() || method==METHODE.DELETE.toString() || method==METHODE.PUT.toString()){
+            const bodyBuffer = this.extractBodyOnly(header, remainingBuffer);
+            Body = this.parseRequestBody(header, bodyBuffer);
         }
 
         return {method,url,version,header,Body}
@@ -144,22 +145,43 @@ export default class HttpRequestParser {
     }
 
 
+    
+    private extractBodyOnly(header: Record<string, string>, remainingBuffer: Buffer): Buffer {
+        // Cas 1: Transfer-Encoding: chunked
+        if (header["transfer-encoding"]?.toLowerCase().includes("chunked")) {
+            const endMarker = Buffer.from("0\r\n\r\n");
+            const endIndex = remainingBuffer.indexOf(endMarker);
+            if (endIndex === -1) {
+                throw new HttpParsingError("Incomplete chunked body");
+            }
+            return remainingBuffer.subarray(0, endIndex + endMarker.length);
+        }
+
+        if (header["content-length"]) {
+            const contentLength = parseInt(header["content-length"], 10);
+            return remainingBuffer.subarray(0, contentLength);
+        }
+
+        //Pas de body (GET, HEAD, etc.)
+        return Buffer.alloc(0);
+    }
+
     private parseRequestBody(header : Record<string,string> , bodyBuffer:Buffer){
         // Si Transfer-Encoding: chunked, décoder les chunks d'abord
         if (header["transfer-encoding"]?.toLowerCase().includes("chunked")) {
             bodyBuffer = this.parseChunkedBody(bodyBuffer);
         }
 
-        // 1 Décompresser (si Content-Encoding existe) si existe si non le body ne pas compresser 
+        // 1 Décompresser (si Content-Encoding existe) si existe si non le body ne pas compresser
 
         const decompressedBodyBuffer = this.decompresseBody(header, bodyBuffer);
-        
+
         // 2 Décoder les bytes → texte (si nécessaire) par defailt utf-8
 
         // 3 Parsing (JSON, form, etc.) Content-Type ===> application/json → JSON.parse(text)  application/x-www-form-urlencoded → parse clé/valeur  multipart/form-data → parser boundaries
 
         const bodyFormater = this.formateBody(decompressedBodyBuffer, header);
-        
+
         return bodyFormater;
     }
 
