@@ -61,6 +61,7 @@ const server = net.createServer(async (socket : net.Socket) => {
   socket.on("data", async (chunk: Buffer) => {
     buffer = Buffer.concat([buffer, chunk]);
 
+    
     const parser = new HttpRequestParser(buffer);
     
     const response: HttpResponse = {
@@ -106,9 +107,12 @@ const server = net.createServer(async (socket : net.Socket) => {
     const serializeHttp = serializeHttpResponse(buildHttpResponse(response, request));
     socket.write(serializeHttp);
 
-    socket.end();
-    
-    buffer = Buffer.alloc(0);
+    buffer = sliceCurrentRequest(buffer,request);
+
+    if(request.header["connection"].toLocaleLowerCase()=="close"){
+      socket.end()
+    }
+
   });
 
   socket.on("timeout", () => {
@@ -121,6 +125,32 @@ const server = net.createServer(async (socket : net.Socket) => {
     socket.destroy();
   });
 });
+
+
+function sliceCurrentRequest(buffer:Buffer,request : HttpRequest){
+
+  if (request.header["transfer-encoding"]?.toLowerCase().includes("chunked")) {
+    const delimiterBody = Buffer.from("0\r\n\r\n");
+    const indexBuffer = buffer.indexOf(delimiterBody);
+    return buffer.slice(indexBuffer + delimiterBody.length); // + 5
+  }
+
+  
+  const delimiter = Buffer.from("\r\n\r\n");
+  const headerEndIndex = buffer.indexOf(delimiter) + delimiter.length;
+
+  const cl = request.header["content-length"];
+  
+  if (cl) {
+    const contentLength = parseInt(cl, 10);
+    return buffer.slice(headerEndIndex + contentLength); // + 4
+  }
+  
+  
+
+  return buffer.slice(headerEndIndex);
+
+}
 
 server.listen(4221, "localhost");
 
