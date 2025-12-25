@@ -2,7 +2,7 @@ import * as net from "net";
 import { buildHttpResponse,serializeHttpResponse } from "./builder/ResponseBuilder";
 
 import HttpRequestParser from "./parser/ParseRequestHttp"
-import { type HttpRequest, type HttpResponse } from "./type/type";
+import { METHODE, type Handler, type HttpRequest, type HttpResponse, type Middleware } from "./type/type";
 import { Router } from "./core/router";
 import { IncompleteHttpHeadersError } from "./exceptions/exceptions";
 const KEEP_ALIVE_TIMEOUT = 5000;
@@ -51,10 +51,10 @@ export class MyOwnHttp {
   private server: net.Server;
   private route:Router
 
-  constructor(port: number, host: string, route:Router) {
+  constructor(port: number, host: string) {
     this.host = host;
     this.port = port;
-    this.route = route
+    this.route = new Router();
     this.server = net.createServer(async (socket : net.Socket) => {
       let buffer = Buffer.alloc(0);
 
@@ -171,6 +171,14 @@ export class MyOwnHttp {
     
     }
 
+  }
+
+  public registerRoute(methode : METHODE,path:string,handle:Handler){
+    this.route.register(methode,path,handle);
+  }
+
+  public registerMiddl(middl : Middleware){
+    this.route.use(middl);
   }
 
   public start(){
