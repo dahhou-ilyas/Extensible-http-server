@@ -135,7 +135,6 @@ export class MyOwnHttp {
       });
     
       socket.on("timeout", () => {
-        console.log("[SERVER] Socket idle timeout, closing connection");
         socket.end();
       });
     
