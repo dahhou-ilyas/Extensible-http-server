@@ -80,27 +80,27 @@ export class Router {
 
         const isMatchingHandler = this.searchForPtterPath(this.route[METhode],url,req)
 
-        if(!finalHandler && isMatchingHandler==null){
-            resp.statusCode=404
-            resp.body = "Not Found";
-            return;
-        }
 
-        let index = 0;
 
         //un appelle récursive de next pour chaque middlware on apelle next qui vas passé nous vers autre middlware
-
+        let index = 0;
         const next =async ()=>{
             if(index < this.middlwares.length){
                 const mw = this.middlwares[index++];
                 await mw(req, resp, next);
             }
-            else {
+            else if (finalHandler || isMatchingHandler!=null) {
                 const handler = finalHandler || (isMatchingHandler as Handler);
                 await handler(req, resp);
             }
-        }
+        }        
 
+        if(!finalHandler && isMatchingHandler==null){
+            resp.statusCode=404
+            resp.body = "Not Found";
+            await next()
+            return;
+        }
         await next()
     }
 
