@@ -42,3 +42,8 @@ export interface AuthConfig extends MiddlewareConfig {
 export type MiddlewareFactory<T extends MiddlewareConfig> = (
   config: T
 ) => (req: HttpRequest, res: HttpResponse, next: NextFunction) => void | Promise<void>;
+
+
+export type MiddlewareConfiguration = {
+  logger: LoggerConfig;
+};

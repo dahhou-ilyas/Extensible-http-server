@@ -32,8 +32,8 @@ export enum METHODE {
 }
 
 
-export type NextFunction = () => void;
+export type NextFunction = () => void | Promise<void>;
 
-export type Middleware = (req: HttpRequest, res: HttpResponse, next: NextFunction) => void;
+export type Middleware = (req: HttpRequest, res: HttpResponse, next: NextFunction) => void | Promise<void>;;
 
-export type Handler = (req: HttpRequest, res: HttpResponse) => void;
+export type Handler = (req: HttpRequest, res: HttpResponse) => void | Promise<void>;

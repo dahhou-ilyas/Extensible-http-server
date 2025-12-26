@@ -3,13 +3,16 @@ import { MyOwnHttp } from "./main";
 import { createLoggerMiddleware } from "./middleware/logger";
 import type { LoggerConfig } from "./middleware/types";
 import { METHODE } from "./type/type";
+import { middlewareConfig } from "./config/middleware.config";
 
 
 
 const httpServer =new MyOwnHttp(4002,"localhost")
-const a = createLoggerMiddleware("e" as unknown as LoggerConfig);
-httpServer.registerMiddl(a)
 
+if (middlewareConfig.logger.enabled) {
+  const loggerMiddleware = createLoggerMiddleware(middlewareConfig.logger);
+  httpServer.registerMiddl(loggerMiddleware);
+}
 httpServer.registerRoute(METHODE.GET,"/",simpleSuccesForGet)
 
 httpServer.registerRoute(METHODE.GET,"/echo/{str}",handleEcho)
