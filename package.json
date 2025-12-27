@@ -9,6 +9,7 @@
     "dev3": "tsx app/server.ts"
   },
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "tsx": "^4.21.0"
   }
 }

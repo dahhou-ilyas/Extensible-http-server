@@ -63,7 +63,6 @@ export class MyOwnHttp {
       socket.on("data", async (chunk: Buffer) => {
         buffer = Buffer.concat([buffer, chunk]);
       
-        // BOUCLE: traiter TOUTES les requêtes complètes dans le buffer
         while (buffer.length > 0) {
           const parser = new HttpRequestParser(buffer);
         
@@ -80,57 +79,47 @@ export class MyOwnHttp {
             request = parser.parseRequestHttp();
           
           } catch (error) {
-            // Requête incomplète - attendre plus de données
             if (error instanceof IncompleteHttpHeadersError) {
-              break; // Sortir de la boucle
+              break; 
             }
           
-            // Chunked body incomplet - attendre plus de données
             if (error instanceof Error && error.message.includes("Incomplete chunked body")) {
-              break; // Sortir de la boucle
+              break; 
             }
           
-            // Erreur de parsing - FERMER LA CONNEXION
             socket.write(
               "HTTP/1.1 400 Bad Request\r\nContent-Type: text/html\r\n\r\n<h1>Bad Request: Invalid HTTP format</h1>"
             );
             socket.end();
             buffer = Buffer.alloc(0);
-            return; // Sortir de la fonction complètement
+            return; 
           }
         
-          // Si pas de requête, erreur
           if (!request) {
             socket.write(
               "HTTP/1.1 400 Bad Request\r\nContent-Type: text/html\r\n\r\n<h1>Bad Request</h1>"
             );
             socket.end();
             buffer = Buffer.alloc(0);
-            return; // Sortir de la fonction complètement
+            return;
           }
         
-          // Traiter la requête
           await this.route.handle(request, response);
         
-          // Envoyer la réponse
           const serializeHttp = serializeHttpResponse(buildHttpResponse(response, request));
           socket.write(serializeHttp);
         
-          // Supprimer la requête traitée du buffer
           buffer = sliceCurrentRequest(buffer, request);
         
-          // Vérifier Connection: close
           const connectionHeader = request.header["connection"];
         
           if (connectionHeader && connectionHeader.toLowerCase() === "close") {
             socket.end();
-            return; // Sortir de la fonction complètement
+            return;
           }
         
-          // Réinitialiser le timeout keep-alive après chaque requête traitée
           socket.setTimeout(KEEP_ALIVE_TIMEOUT);
         
-          // La boucle continue automatiquement pour traiter la prochaine requête dans le buffer
         }
       });
     

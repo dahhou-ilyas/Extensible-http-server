@@ -1,5 +1,5 @@
 import type { LoggerConfig, MiddlewareFactory } from "./types";
-
+import { middlewareRegistry, MiddlewareGroup } from "../core/MiddlewareRegistry";
 
 const colors = {
   reset: "\x1b[0m",
@@ -12,8 +12,10 @@ const colors = {
   magenta: "\x1b[35m",
 };
 
-
-
+/**
+ * Logger Middleware Factory
+ * Logs HTTP requests and responses with colorization and detailed information
+ */
 export const createLoggerMiddleware: MiddlewareFactory<LoggerConfig> = (config) => {
   return async (req, res, next) => {
     const startTime = Date.now();
@@ -31,11 +33,11 @@ export const createLoggerMiddleware: MiddlewareFactory<LoggerConfig> = (config) 
     }
 
     if (config.logRequestHeaders) {
-      console.log("  📥 Request Headers:", JSON.stringify(req.header, null, 2));
+      console.log("  Request Headers:", JSON.stringify(req.header, null, 2));
     }
 
     if (config.logRequestBody && req.Body) {
-      console.log("  📦 Request Body:", req.Body);
+      console.log("  Request Body:", req.Body);
     }
 
     await next();
@@ -65,7 +67,7 @@ export const createLoggerMiddleware: MiddlewareFactory<LoggerConfig> = (config) 
     }
 
     if (config.logResponseHeaders) {
-      console.log("  📤 Response Headers:", JSON.stringify(res.headers, null, 2));
+      console.log(" Response Headers:", JSON.stringify(res.headers, null, 2));
     }
 
     if (config.logResponseBody && res.body) {
@@ -75,3 +77,55 @@ export const createLoggerMiddleware: MiddlewareFactory<LoggerConfig> = (config) 
     }
   };
 };
+
+/**
+ * Auto-register logger middleware on module load
+ */
+middlewareRegistry.register({
+  name: "logger",
+  description: "Logs HTTP requests and responses with detailed information",
+  version: "1.0.0",
+  priority: 10,
+  group: MiddlewareGroup.MONITORING,
+  factory: createLoggerMiddleware,
+  defaultConfig: {
+    enabled: true,
+    colorize: true,
+    logRequestHeaders: false,
+    logRequestBody: false,
+    logResponseHeaders: false,
+    logResponseBody: false,
+  },
+  validateConfig: (config: LoggerConfig) => {
+    const errors: string[] = [];
+
+    if (typeof config.enabled !== "boolean") {
+      errors.push("'enabled' must be a boolean");
+    }
+
+    if (config.colorize !== undefined && typeof config.colorize !== "boolean") {
+      errors.push("'colorize' must be a boolean");
+    }
+
+    if (config.logRequestHeaders !== undefined && typeof config.logRequestHeaders !== "boolean") {
+      errors.push("'logRequestHeaders' must be a boolean");
+    }
+
+    if (config.logRequestBody !== undefined && typeof config.logRequestBody !== "boolean") {
+      errors.push("'logRequestBody' must be a boolean");
+    }
+
+    if (config.logResponseHeaders !== undefined && typeof config.logResponseHeaders !== "boolean") {
+      errors.push("'logResponseHeaders' must be a boolean");
+    }
+
+    if (config.logResponseBody !== undefined && typeof config.logResponseBody !== "boolean") {
+      errors.push("'logResponseBody' must be a boolean");
+    }
+
+    return {
+      valid: errors.length === 0,
+      errors: errors.length > 0 ? errors : undefined,
+    };
+  },
+});

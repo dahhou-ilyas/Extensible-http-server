@@ -1,18 +1,20 @@
 import { fileHandler, handleEcho, handlerUserAgent, saveFile, simpleSuccesForGet } from "./handler/handler";
 import { MyOwnHttp } from "./main";
-import { createLoggerMiddleware } from "./middleware/logger";
-import type { LoggerConfig } from "./middleware/types";
 import { METHODE } from "./type/type";
 import { middlewareConfig } from "./config/middleware.config";
+import { MiddlewareLoader } from "./core/middlewareLoader";
 
+// Import all middlewares to auto-register them in the registry
+// Each middleware file registers itself on import via middlewareRegistry.register()
+import "./middleware/logger";
+import "./middleware/cors";
+import "./middleware/rateLimit";
+import "./middleware/auth";
 
+const httpServer = new MyOwnHttp(4002, "localhost");
 
-const httpServer =new MyOwnHttp(4002,"localhost")
+MiddlewareLoader.registerMiddlewares(httpServer, middlewareConfig);
 
-if (middlewareConfig.logger.enabled) {
-  const loggerMiddleware = createLoggerMiddleware(middlewareConfig.logger);
-  httpServer.registerMiddl(loggerMiddleware);
-}
 httpServer.registerRoute(METHODE.GET,"/",simpleSuccesForGet)
 
 httpServer.registerRoute(METHODE.GET,"/echo/{str}",handleEcho)
