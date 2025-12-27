@@ -997,53 +997,9 @@ This project is perfect for understanding:
 
 ---
 
-## 🚀 Performance Characteristics
-
-| Metric | Value | Notes |
-|--------|-------|-------|
-| **Concurrent Connections** | 1000+ | OS file descriptor limit |
-| **Requests/sec** | ~5,000 | Single-threaded, local |
-| **Latency** | <5ms | Without middleware |
-| **Middleware Overhead** | <1ms | Per middleware |
-| **Memory Usage** | ~50MB | Base + connections |
-| **Compression Savings** | 70-90% | For text content |
-
-**Optimization tips:**
-- Enable HTTP pipelining for multiple requests
-- Use `Connection: keep-alive` to reduce TCP overhead
-- Enable compression for text-heavy responses
-- Disable verbose logging in production
-- Adjust rate limiting based on capacity
-
----
-
 ## 🤝 Contributing
 
-Contributions are welcome! Here's how you can help:
-
-### Areas for Contribution
-
-- 🔌 **New Middlewares**
-  - Session management
-  - Request validation (JSON Schema)
-  - Response caching
-  - Metrics collection (Prometheus)
-  - Security headers (Helmet-style)
-
-- 🧪 **Testing**
-  - More unit tests
-  - Performance benchmarks
-  - Load testing scripts
-
-- 📚 **Documentation**
-  - Code examples
-  - Tutorial videos
-  - Architectural diagrams
-
-- 🐛 **Bug Fixes**
-  - Edge case handling
-  - Performance improvements
-  - TypeScript type refinements
+Contributions are welcome!
 
 ### Development Setup
 
