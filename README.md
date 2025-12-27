@@ -1036,14 +1036,6 @@ Then open a Pull Request!
 
 ---
 
-## 📄 License
-
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
-
-**TL;DR:** You can use this code for anything (personal, commercial, etc.) as long as you include the original copyright and license notice.
-
----
-
 ## 🙏 Acknowledgments
 
 - **HTTP/1.1 Specification** ([RFC 2616](https://www.rfc-editor.org/rfc/rfc2616)) - The foundation
